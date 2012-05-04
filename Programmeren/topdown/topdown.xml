@@ -1,0 +1,123 @@
+<settings>
+    <!-- global -->
+
+    <ignore>assert</ignore>
+    <draw_duplicate_trees>0</draw_duplicate_trees>
+    <draw_only></draw_only>
+    <draw_undeclared_nodes>0</draw_undeclared_nodes>
+    <extension>.vz</extension>
+    <post_processor>dot</post_processor>
+    <default_filetype>pdf</default_filetype>
+    <pre_main>pre-main</pre_main>
+
+    <!-- graph layout -->
+
+    <!-- NOTE: all input directed to graphviz is interpreted as html, so you
+         will need to double-escape html entities in labels (i.e. '>' would
+         become '&amp;gt;') -->
+
+    <graph>
+        <!-- default node -->
+        <node>
+            <shape>box</shape>
+            <fontsize>18</fontsize>
+        </node>
+
+        <!-- default edge -->
+        <edge>
+            <fontsize>18</fontsize>
+        </edge>
+    </graph>
+
+    <!-- defined uncalled functions, at the top of the graph -->
+    <top_node>
+        <style>bold</style>
+        <shape>ellipse</shape>
+    </top_node>
+
+    <!-- defined non-calling functions, at the bottom of the graph -->
+    <bottom_node>
+        <color>orange4</color>
+    </bottom_node>
+
+    <!-- nodes that have a subtree which are already drawn elsewhere -->
+    <duplicate_node>
+        <style>bold,dashed</style>
+    </duplicate_node>
+
+    <!-- functions without a body -->
+    <undefined_node>
+        <style>bold,dashed</style>
+        <color>red4</color>
+    </undefined_node>
+
+    <!-- functions which are called but not declared in your project, usually
+         included from a core library - inherits undefined_node -->
+    <undeclared_node>
+        <color>blue4</color>
+    </undeclared_node>
+
+    <!-- edge from a void function -->
+    <void_edge>
+        <dir>none</dir>
+    </void_edge>
+
+    <!-- edge from a non-void function -->
+    <non_void_edge>
+        <dir>back</dir>
+    </non_void_edge>
+
+    <!-- edge from a non-void recursive function -->
+    <non_void_recursive_edge>
+        <dir>forward</dir>
+    </non_void_recursive_edge>
+
+    <!-- node for function argument edges -->
+    <empty_node>
+        <style>invisible</style>
+        <label></label>
+        <width>0</width>
+    </empty_node>
+
+    <!-- function argument edge -->
+    <normal_arg_edge>
+        <dir>forward</dir>
+        <tailport>s</tailport>
+        <weight>2</weight>
+    </normal_arg_edge>
+
+    <!-- function reference/pointer argument edge -->
+    <reference_arg_edge>
+        <dir>both</dir>
+        <tailport>s</tailport>
+        <weight>2</weight>
+    </reference_arg_edge>
+
+    <!-- keep main functions which have no arguments at the same level with
+         those who do -->
+    <dummy_node>
+        <style>invisible</style>
+        <label></label>
+        <width>0</width>
+        <height>0</height>
+        <weight>0</weight>
+    </dummy_node>
+    <dummy_edge>
+        <style>invisible</style>
+        <dir>none</dir>
+        <tailport>s</tailport>
+    </dummy_edge>
+
+    <!-- extra part of labels showing the returning of a data type, %l is
+         substituted with the typename -->
+    <return_type_label>
+        &lt;font color="darkgreen"&gt;&lt;b&gt;
+            %l
+        &lt;/b&gt;&lt;/font&gt;
+    </return_type_label>
+
+    <!-- technical -->
+
+    <keywords>if else for while do switch return</keywords>
+    <type_generating_keywords>enum</type_generating_keywords>
+</settings>
