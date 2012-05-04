@@ -1,2 +1,1 @@
-informatica
-===========
+Hulpprogramma's voor studenten Informatica aan de Radboud Univirsiteit te Nijmegen.
