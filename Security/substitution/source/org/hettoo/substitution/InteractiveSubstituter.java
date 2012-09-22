@@ -45,6 +45,10 @@ public class InteractiveSubstituter extends Substituter {
             stop = true;
         }
 
+        public String getUsage() {
+            return "";
+        }
+
         public String getDescription() {
             return "stops the interactive substituter";
         }
@@ -52,11 +56,27 @@ public class InteractiveSubstituter extends Substituter {
 
     protected class HelpCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
-            System.out.println("Quote arguments using single quotes");
-            System.out.println("Available commands:");
-            for (String command : handlers.keySet())
-                System.out.println(command + " - "
-                        + handlers.get(command).getDescription());
+            if (arguments.size() > 0) {
+                String name = arguments.get(0);
+                CommandHandler handler = handlers.get(name);
+                if (handler != null) {
+                    System.out.println(name + " - " + handler.getDescription());
+                    System.out.println("Usage: " + name
+                            + " " + handler.getUsage());
+                }
+            } else {
+                System.out.println("Quote arguments using single quotes.");
+                System.out.println(
+                        "Add a command as an argument to show its usage.");
+                System.out.println("Available commands:");
+                for (String command : handlers.keySet())
+                    System.out.println("    " + command + " - "
+                            + handlers.get(command).getDescription());
+            }
+        }
+
+        public String getUsage() {
+            return "[command]";
         }
 
         public String getDescription() {
@@ -70,6 +90,10 @@ public class InteractiveSubstituter extends Substituter {
                     + ", try help");
         }
 
+        public String getUsage() {
+            return "...";
+        }
+
         public String getDescription() {
             return "rejects a command";
         }
@@ -78,6 +102,10 @@ public class InteractiveSubstituter extends Substituter {
     protected class SetCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
             setOriginal(arguments.get(0));
+        }
+
+        public String getUsage() {
+            return "<data>";
         }
 
         public String getDescription() {
@@ -90,6 +118,10 @@ public class InteractiveSubstituter extends Substituter {
             System.out.println(getCurrent());
         }
 
+        public String getUsage() {
+            return "";
+        }
+
         public String getDescription() {
             return "shows the current data";
         }
@@ -98,6 +130,10 @@ public class InteractiveSubstituter extends Substituter {
     protected class MaskCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
             System.out.println(getCurrentMasked('?'));
+        }
+
+        public String getUsage() {
+            return "";
         }
 
         public String getDescription() {
@@ -109,6 +145,10 @@ public class InteractiveSubstituter extends Substituter {
         public void handle(List<String> arguments) {
             execute(new ArrayList<String>(Arrays.asList("show")));
             execute(new ArrayList<String>(Arrays.asList("mask")));
+        }
+
+        public String getUsage() {
+            return "";
         }
 
         public String getDescription() {
@@ -123,6 +163,10 @@ public class InteractiveSubstituter extends Substituter {
                         + replacement.getResult());
         }
 
+        public String getUsage() {
+            return "";
+        }
+
         public String getDescription() {
             return "shows all replacements";
         }
@@ -132,6 +176,10 @@ public class InteractiveSubstituter extends Substituter {
         public void handle(List<String> arguments) {
             addReplacement(new Replacement(arguments.get(0).charAt(0),
                         arguments.get(1).charAt(0)));
+        }
+
+        public String getUsage() {
+            return "<target> <result>";
         }
 
         public String getDescription() {
@@ -144,6 +192,10 @@ public class InteractiveSubstituter extends Substituter {
             deleteReplacement(arguments.get(0).charAt(0));
         }
 
+        public String getUsage() {
+            return "<target>";
+        }
+
         public String getDescription() {
             return "deletes a replacement";
         }
@@ -152,6 +204,10 @@ public class InteractiveSubstituter extends Substituter {
     protected class ClearCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
             replacements.clear();
+        }
+
+        public String getUsage() {
+            return "";
         }
 
         public String getDescription() {
@@ -180,6 +236,10 @@ public class InteractiveSubstituter extends Substituter {
             }
         }
 
+        public String getUsage() {
+            return "<file>";
+        }
+
         public String getDescription() {
             return "reads replacements from a file";
         }
@@ -195,6 +255,10 @@ public class InteractiveSubstituter extends Substituter {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        public String getUsage() {
+            return "<file>";
         }
 
         public String getDescription() {
@@ -220,6 +284,10 @@ public class InteractiveSubstituter extends Substituter {
                 System.out.println((isReplaced(c, false) ? "x" : "o")
                         + " " + c + ": " + map.get(c));
             }
+        }
+
+        public String getUsage() {
+            return "";
         }
 
         public String getDescription() {
