@@ -42,13 +42,9 @@ public class InteractiveSubstituter extends Substituter {
         setUnknownCommandHandler(new UnknownCommandHandler());
     }
 
-    protected class QuitCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class QuitCommandHandler extends AbstractCommandHandler {
+        public void handle(ArgumentProvider arguments) {
             stop = true;
-        }
-
-        public String getUsage() {
-            return "";
         }
 
         public String getDescription() {
@@ -56,17 +52,14 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class HelpCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
-            if (arguments.size() > 0) {
-                String name = arguments.get(0);
-                CommandHandler handler = handlers.get(name);
-                if (handler != null) {
-                    System.out.println(name + " - " + handler.getDescription());
-                    System.out.println("Usage: " + name
-                            + " " + handler.getUsage());
-                }
-            } else {
+    protected class HelpCommandHandler extends AbstractCommandHandler {
+        public HelpCommandHandler() {
+            addArgument(new Argument("command", true, false));
+        }
+
+        public void handle(ArgumentProvider arguments) {
+            String name = arguments.getArgument("command");
+            if (name == null) {
                 System.out.println("Quote arguments using single quotes.");
                 System.out.println(
                         "Add a command as an argument to show its usage.");
@@ -74,11 +67,14 @@ public class InteractiveSubstituter extends Substituter {
                 for (String command : handlers.keySet())
                     System.out.println("    " + command + " - "
                             + handlers.get(command).getDescription());
+            } else {
+                CommandHandler handler = handlers.get(name);
+                if (handler != null) {
+                    System.out.println(name + " - " + handler.getDescription());
+                    System.out.println("Usage: " + name
+                            + " " + handler.getUsage());
+                }
             }
-        }
-
-        public String getUsage() {
-            return "[command]";
         }
 
         public String getDescription() {
@@ -86,14 +82,14 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class UnknownCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
-            System.out.println("Unknown command " + arguments.get(0)
-                    + ", try help.");
+    protected class UnknownCommandHandler extends AbstractCommandHandler {
+        public UnknownCommandHandler() {
+            addArgument(new Argument("input", false, true));
         }
 
-        public String getUsage() {
-            return "...";
+        public void handle(ArgumentProvider arguments) {
+            System.out.println("Unknown command "
+                    + arguments.getArgument("data") + ", try `help'.");
         }
 
         public String getDescription() {
@@ -101,13 +97,13 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class SetCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
-            setOriginal(arguments.get(0));
+    protected class SetCommandHandler extends AbstractCommandHandler {
+        public SetCommandHandler() {
+            addArgument(new Argument("data", false, false));
         }
 
-        public String getUsage() {
-            return "<data>";
+        public void handle(ArgumentProvider arguments) {
+            setOriginal(arguments.getArgument("data"));
         }
 
         public String getDescription() {
@@ -115,13 +111,9 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class OriginalCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class OriginalCommandHandler extends AbstractCommandHandler {
+        public void handle(ArgumentProvider arguments) {
             System.out.println(getOriginal());
-        }
-
-        public String getUsage() {
-            return "";
         }
 
         public String getDescription() {
@@ -129,13 +121,9 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class ShowCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class ShowCommandHandler extends AbstractCommandHandler {
+        public void handle(ArgumentProvider arguments) {
             System.out.println(getCurrent());
-        }
-
-        public String getUsage() {
-            return "";
         }
 
         public String getDescription() {
@@ -143,13 +131,9 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class MaskCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class MaskCommandHandler extends AbstractCommandHandler {
+        public void handle(ArgumentProvider arguments) {
             System.out.println(getCurrentMasked('*'));
-        }
-
-        public String getUsage() {
-            return "";
         }
 
         public String getDescription() {
@@ -157,15 +141,11 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class AllCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class AllCommandHandler extends AbstractCommandHandler {
+        public void handle(ArgumentProvider arguments) {
             execute(new ArrayList<String>(Arrays.asList("original")));
             execute(new ArrayList<String>(Arrays.asList("show")));
             execute(new ArrayList<String>(Arrays.asList("mask")));
-        }
-
-        public String getUsage() {
-            return "";
         }
 
         public String getDescription() {
@@ -174,11 +154,16 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class ListCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class ListCommandHandler extends AbstractCommandHandler {
+        public ListCommandHandler() {
+            addArgument(new Argument("character", true, false));
+        }
+
+        public void handle(ArgumentProvider arguments) {
+            String characterString = arguments.getArgument("character");
             Character character = null;
-            if (arguments.size() > 0)
-                character = arguments.get(0).charAt(0);
+            if (characterString != null)
+                character = characterString.charAt(0);
             for (Replacement replacement : replacements) {
                 if (character == null || replacement.getTarget() == character
                         || replacement.getResult() == character)
@@ -187,17 +172,13 @@ public class InteractiveSubstituter extends Substituter {
             }
         }
 
-        public String getUsage() {
-            return "[character]";
-        }
-
         public String getDescription() {
             return "shows all replacements";
         }
     }
 
-    protected class StatsCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class StatsCommandHandler extends AbstractCommandHandler {
+        public void handle(ArgumentProvider arguments) {
             String original = getOriginal();
             Map<Character, Boolean> replaced
                 = new HashMap<Character, Boolean>();
@@ -228,31 +209,26 @@ public class InteractiveSubstituter extends Substituter {
                     + " different characters replaced.");
         }
 
-        public String getUsage() {
-            return "";
-        }
-
         public String getDescription() {
             return "show multiply resulted characters as well as the amount of"
                 + " replacements and the maximum amount possible";
         }
     }
 
-    protected class AddCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
-            String target = arguments.get(0);
-            String result;
-            if (arguments.size() > 1)
-               result = arguments.get(1);
-            else
+    protected class AddCommandHandler extends AbstractCommandHandler {
+        public AddCommandHandler() {
+            addArgument(new Argument("target", false, false));
+            addArgument(new Argument("result", true, false));
+        }
+
+        public void handle(ArgumentProvider arguments) {
+            String target = arguments.getArgument("target");
+            String result = arguments.getArgument("result");
+            if (result == null)
                 result = target;
             for (int i = 0 ; i < target.length(); i++)
                 addReplacement(new Replacement(target.charAt(i),
                             result.charAt(i)));
-        }
-
-        public String getUsage() {
-            return "<target> <result>";
         }
 
         public String getDescription() {
@@ -260,13 +236,13 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class DeleteCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
-            deleteReplacement(arguments.get(0).charAt(0));
+    protected class DeleteCommandHandler extends AbstractCommandHandler {
+        public DeleteCommandHandler() {
+            addArgument(new Argument("target", false, false));
         }
 
-        public String getUsage() {
-            return "<target>";
+        public void handle(ArgumentProvider arguments) {
+            deleteReplacement(arguments.getArgument("target").charAt(0));
         }
 
         public String getDescription() {
@@ -274,13 +250,9 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class ClearCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class ClearCommandHandler extends AbstractCommandHandler {
+        public void handle(ArgumentProvider arguments) {
             replacements.clear();
-        }
-
-        public String getUsage() {
-            return "";
         }
 
         public String getDescription() {
@@ -288,11 +260,16 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class ReadCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class ReadCommandHandler extends AbstractCommandHandler {
+        public ReadCommandHandler() {
+            addArgument(new Argument("file", false, false));
+        }
+
+        public void handle(ArgumentProvider arguments) {
             try {
-                BufferedInputStream in = new BufferedInputStream(
-                        new FileInputStream(arguments.get(0) + ".s"));
+                BufferedInputStream in
+                    = new BufferedInputStream(new FileInputStream(
+                                arguments.getArgument("file") + ".s"));
                 boolean done = false;
                 do {
                     in.mark(1);
@@ -309,19 +286,20 @@ public class InteractiveSubstituter extends Substituter {
             }
         }
 
-        public String getUsage() {
-            return "<file>";
-        }
-
         public String getDescription() {
             return "reads replacements from a file";
         }
     }
 
-    protected class WriteCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class WriteCommandHandler extends AbstractCommandHandler {
+        public WriteCommandHandler() {
+            addArgument(new Argument("file", false, false));
+        }
+
+        public void handle(ArgumentProvider arguments) {
             try {
-                FileWriter out = new FileWriter(arguments.get(0) + ".s");
+                FileWriter out = new FileWriter(
+                        arguments.getArgument("file") + ".s");
                 for (Replacement replacement : replacements)
                     replacement.write(out);
                 out.close();
@@ -330,19 +308,20 @@ public class InteractiveSubstituter extends Substituter {
             }
         }
 
-        public String getUsage() {
-            return "<file>";
-        }
-
         public String getDescription() {
             return "writes replacements to a file";
         }
     }
 
-    protected class CountCommandHandler implements CommandHandler {
-        public void handle(List<String> arguments) {
+    protected class CountCommandHandler extends AbstractCommandHandler {
+        public CountCommandHandler() {
+            addArgument(new Argument("mode", true, false));
+        }
+
+        public void handle(ArgumentProvider arguments) {
             String original = getOriginal();
-            if (arguments.size() > 0 && arguments.get(0).equals("words")) {
+            String mode = arguments.getArgument("mode");
+            if (mode != null && mode.equals("words")) {
                 HashMap<String, Integer> map
                     = new HashMap<String, Integer>();
                 TreeMap<String, Integer> orderedMap
@@ -362,6 +341,14 @@ public class InteractiveSubstituter extends Substituter {
                         map.put(s, ++count);
                         s = "";
                     }
+                }
+                if (!s.equals("")) {
+                    s = s.toLowerCase();
+                    Integer count = map.get(s);
+                    if (count == null)
+                        count = 0;
+                    map.put(s, ++count);
+                    s = "";
                 }
                 orderedMap.putAll(map);
                 for (String word : orderedMap.keySet())
@@ -384,10 +371,6 @@ public class InteractiveSubstituter extends Substituter {
                             + " " + c + ": " + map.get(c));
                 }
             }
-        }
-
-        public String getUsage() {
-            return "";
         }
 
         public String getDescription() {
@@ -470,6 +453,7 @@ public class InteractiveSubstituter extends Substituter {
     }
 
     public void setCommandHandler(String command, CommandHandler handler) {
+        handler.setName(command);
         handlers.put(command, handler);
     }
 
