@@ -129,7 +129,7 @@ public class InteractiveSubstituter extends Substituter {
 
     protected class MaskCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
-            System.out.println(getCurrentMasked('?'));
+            System.out.println(getCurrentMasked('*'));
         }
 
         public String getUsage() {
