@@ -219,7 +219,7 @@ public class InteractiveSubstituter extends Substituter {
         public void handle(List<String> arguments) {
             try {
                 BufferedInputStream in = new BufferedInputStream(
-                        new FileInputStream(arguments.get(0)));
+                        new FileInputStream(arguments.get(0) + ".s"));
                 boolean done = false;
                 do {
                     in.mark(1);
@@ -248,7 +248,7 @@ public class InteractiveSubstituter extends Substituter {
     protected class WriteCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
             try {
-                FileWriter out = new FileWriter(arguments.get(0));
+                FileWriter out = new FileWriter(arguments.get(0) + ".s");
                 for (Replacement replacement : replacements)
                     replacement.write(out);
                 out.close();
