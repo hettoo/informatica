@@ -25,22 +25,24 @@ public class InteractiveSubstituter extends Substituter {
     public InteractiveSubstituter() {
         handlers = new LinkedHashMap<String, CommandHandler>();
         setCommandHandler("set", new SetCommandHandler());
+        setCommandHandler("original", new OriginalCommandHandler());
         setCommandHandler("show", new ShowCommandHandler());
         setCommandHandler("mask", new MaskCommandHandler());
-        setCommandHandler("both", new BothCommandHandler());
+        setCommandHandler("all", new AllCommandHandler());
         setCommandHandler("count", new CountCommandHandler());
         setCommandHandler("add", new AddCommandHandler());
         setCommandHandler("delete", new DeleteCommandHandler());
         setCommandHandler("clear", new ClearCommandHandler());
         setCommandHandler("list", new ListCommandHandler());
+        setCommandHandler("stats", new StatsCommandHandler());
         setCommandHandler("read", new ReadCommandHandler());
         setCommandHandler("write", new WriteCommandHandler());
-        setCommandHandler("stop", new StopCommandHandler());
+        setCommandHandler("quit", new QuitCommandHandler());
         setCommandHandler("help", new HelpCommandHandler());
         setUnknownCommandHandler(new UnknownCommandHandler());
     }
 
-    protected class StopCommandHandler implements CommandHandler {
+    protected class QuitCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
             stop = true;
         }
@@ -50,7 +52,7 @@ public class InteractiveSubstituter extends Substituter {
         }
 
         public String getDescription() {
-            return "stops the interactive substituter";
+            return "terminates the interactive substituter";
         }
     }
 
@@ -87,7 +89,7 @@ public class InteractiveSubstituter extends Substituter {
     protected class UnknownCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
             System.out.println("Unknown command " + arguments.get(0)
-                    + ", try help");
+                    + ", try help.");
         }
 
         public String getUsage() {
@@ -110,6 +112,20 @@ public class InteractiveSubstituter extends Substituter {
 
         public String getDescription() {
             return "sets the original data";
+        }
+    }
+
+    protected class OriginalCommandHandler implements CommandHandler {
+        public void handle(List<String> arguments) {
+            System.out.println(getOriginal());
+        }
+
+        public String getUsage() {
+            return "";
+        }
+
+        public String getDescription() {
+            return "shows the original data";
         }
     }
 
@@ -141,8 +157,9 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
-    protected class BothCommandHandler implements CommandHandler {
+    protected class AllCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
+            execute(new ArrayList<String>(Arrays.asList("original")));
             execute(new ArrayList<String>(Arrays.asList("show")));
             execute(new ArrayList<String>(Arrays.asList("mask")));
         }
@@ -152,19 +169,26 @@ public class InteractiveSubstituter extends Substituter {
         }
 
         public String getDescription() {
-            return "shows the current data both unmasked and masked";
+            return "shows the original and the current data both unmasked and"
+               + " masked";
         }
     }
 
     protected class ListCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
-            for (Replacement replacement : replacements)
-                System.out.println(replacement.getTarget() + " -> "
-                        + replacement.getResult());
+            Character character = null;
+            if (arguments.size() > 0)
+                character = arguments.get(0).charAt(0);
+            for (Replacement replacement : replacements) {
+                if (character == null || replacement.getTarget() == character
+                        || replacement.getResult() == character)
+                    System.out.println(replacement.getTarget() + " -> "
+                            + replacement.getResult());
+            }
         }
 
         public String getUsage() {
-            return "";
+            return "[character]";
         }
 
         public String getDescription() {
@@ -172,10 +196,59 @@ public class InteractiveSubstituter extends Substituter {
         }
     }
 
+    protected class StatsCommandHandler implements CommandHandler {
+        public void handle(List<String> arguments) {
+            String original = getOriginal();
+            Map<Character, Boolean> replaced
+                = new HashMap<Character, Boolean>();
+            for (char c : getOriginal().toCharArray())
+                replaced.put(c, false);
+            Map<Character, Integer> counts = new HashMap<Character, Integer>();
+            for (Replacement replacement : replacements) {
+                char target = replacement.getTarget();
+                if (replaced.containsKey(target))
+                    replaced.put(target, true);
+                char result = replacement.getResult();
+                Integer count = counts.get(result);
+                if (count == null)
+                    count = 0;
+                counts.put(result, ++count);
+            }
+            for (Character c : counts.keySet()) {
+                if (counts.get(c) > 1)
+                    System.out.println("Character " + c
+                            + " is resulted multiple times.");
+            }
+            int replacements = 0;
+            for (Character c : replaced.keySet()) {
+                if (replaced.get(c))
+                    replacements++;
+            }
+            System.out.println(replacements + " of " + replaced.keySet().size()
+                    + " different characters replaced.");
+        }
+
+        public String getUsage() {
+            return "";
+        }
+
+        public String getDescription() {
+            return "show multiply resulted characters as well as the amount of"
+                + " replacements and the maximum amount possible";
+        }
+    }
+
     protected class AddCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
-            addReplacement(new Replacement(arguments.get(0).charAt(0),
-                        arguments.get(1).charAt(0)));
+            String target = arguments.get(0);
+            String result;
+            if (arguments.size() > 1)
+               result = arguments.get(1);
+            else
+                result = target;
+            for (int i = 0 ; i < target.length(); i++)
+                addReplacement(new Replacement(target.charAt(i),
+                            result.charAt(i)));
         }
 
         public String getUsage() {
@@ -183,7 +256,7 @@ public class InteractiveSubstituter extends Substituter {
         }
 
         public String getDescription() {
-            return "adds a replacement";
+            return "adds replacements character-wise";
         }
     }
 
@@ -269,20 +342,47 @@ public class InteractiveSubstituter extends Substituter {
     protected class CountCommandHandler implements CommandHandler {
         public void handle(List<String> arguments) {
             String original = getOriginal();
-            HashMap<Character, Integer> map = new HashMap<Character, Integer>();
-            TreeMap<Character, Integer> orderedMap
-                = new TreeMap<Character, Integer>(new ValueComparator(map));
-            for (int i = 0; i < original.length(); i++) {
-                Character c = original.charAt(i);
-                if (map.get(c) == null)
-                    map.put(c, 1);
-                else
-                    map.put(c, map.get(c) + 1);
-            }
-            orderedMap.putAll(map);
-            for (Character c : orderedMap.keySet()) {
-                System.out.println((isReplaced(c, false) ? "x" : "o")
-                        + " " + c + ": " + map.get(c));
+            if (arguments.size() > 0 && arguments.get(0).equals("words")) {
+                HashMap<String, Integer> map
+                    = new HashMap<String, Integer>();
+                TreeMap<String, Integer> orderedMap
+                    = new TreeMap<String, Integer>(
+                            new ValueComparator<String>(map));
+                String s = "";
+                for (char c : original.toCharArray()) {
+                    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+                            || c == '-' || c == '_') {
+                        if (c != '-')
+                            s += c;
+                    } else if (!s.equals("")) {
+                        s = s.toLowerCase();
+                        Integer count = map.get(s);
+                        if (count == null)
+                            count = 0;
+                        map.put(s, ++count);
+                        s = "";
+                    }
+                }
+                orderedMap.putAll(map);
+                for (String word : orderedMap.keySet())
+                    System.out.println(word + ": " + map.get(word));
+            } else {
+                HashMap<Character, Integer> map
+                    = new HashMap<Character, Integer>();
+                TreeMap<Character, Integer> orderedMap
+                    = new TreeMap<Character, Integer>(
+                            new ValueComparator<Character>(map));
+                for (char c : original.toCharArray()) {
+                    Integer count = map.get(c);
+                    if (count == null)
+                        count = 0;
+                    map.put(c, ++count);
+                }
+                orderedMap.putAll(map);
+                for (Character c : orderedMap.keySet()) {
+                    System.out.println((isReplaced(c, true) ? "x" : "o")
+                            + " " + c + ": " + map.get(c));
+                }
             }
         }
 
@@ -291,17 +391,17 @@ public class InteractiveSubstituter extends Substituter {
         }
 
         public String getDescription() {
-            return "shows original character counts";
+            return "shows original character or word counts";
         }
 
-        protected class ValueComparator implements Comparator<Character> {
-            Map<Character, Integer> base;
+        protected class ValueComparator<T> implements Comparator<T> {
+            Map<T, Integer> base;
 
-            public ValueComparator(Map<Character, Integer> base) {
+            public ValueComparator(Map<T, Integer> base) {
                 this.base = base;
             }
 
-            public int compare(Character a, Character b) {
+            public int compare(T a, T b) {
                 if (base.get(a) >= base.get(b))
                     return 1;
                 return -1;

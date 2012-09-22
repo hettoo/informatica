@@ -61,8 +61,7 @@ public class Substituter {
 
     protected void updateCurrent() {
         current = "";
-        for (int i = 0; i < original.length(); i++) {
-            char c = original.charAt(i);
+        for (char c : original.toCharArray()) {
             for (Replacement replacement : replacements) {
                 if (replacement.applies(c)) {
                     c = replacement.apply(c);
