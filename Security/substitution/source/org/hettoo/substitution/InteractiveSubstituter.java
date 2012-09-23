@@ -244,7 +244,8 @@ public class InteractiveSubstituter extends Substituter {
         }
 
         public void handle(ArgumentProvider arguments) {
-            deleteReplacement(arguments.getArgument("target").charAt(0));
+            for (char c : arguments.getArgument("target").toCharArray())
+                deleteReplacement(c);
         }
 
         public String getDescription() {
