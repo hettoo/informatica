@@ -8,13 +8,13 @@ public abstract class AbstractCommandHandler implements CommandHandler {
     private List<Argument> arguments;
     private int minimumArguments;
     private int maximumArguments;
-    private boolean hasOptional;
+    private boolean optional;
 
     public AbstractCommandHandler() {
         arguments = new ArrayList<Argument>();
         minimumArguments = 0;
         maximumArguments = 0;
-        hasOptional = false;
+        optional = false;
     }
 
     public void setName(String name) {
@@ -26,17 +26,18 @@ public abstract class AbstractCommandHandler implements CommandHandler {
     }
 
     protected void addArgument(Argument argument) {
-        if ((argument.isVariable() && (maximumArguments == -1 || hasOptional))
-                || (argument.isOptional() && maximumArguments == -1)) {
-            System.err.println("Multiple variable arguments or a combination of"
-                    + " optional and variable arguments is not possible.");
+        if (optional && !argument.isOptional()) {
+            System.err.println("All optional arguments must go at the end.");
+            System.exit(1);
+        } else if (maximumArguments == -1) {
+            System.err.println("The variable argument must be the last one.");
             System.exit(1);
         }
         arguments.add(argument);
-        if (!argument.isOptional())
-            minimumArguments++;
+        if (argument.isOptional())
+            optional = true;
         else
-            hasOptional = true;
+            minimumArguments++;
         if (argument.isVariable())
             maximumArguments = -1;
         if (maximumArguments != -1)
@@ -45,7 +46,8 @@ public abstract class AbstractCommandHandler implements CommandHandler {
 
     public void handle(List<String> arguments) {
         int size = arguments.size();
-        if (size < minimumArguments || size > maximumArguments) {
+        if (size < minimumArguments
+                || (maximumArguments != -1 && size > maximumArguments)) {
             System.out.println("Usage: " + getName() + " " + getUsage());
             return;
         }

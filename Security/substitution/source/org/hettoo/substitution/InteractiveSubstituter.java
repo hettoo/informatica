@@ -69,7 +69,9 @@ public class InteractiveSubstituter extends Substituter {
                             + handlers.get(command).getDescription());
             } else {
                 CommandHandler handler = handlers.get(name);
-                if (handler != null) {
+                if (handler == null) {
+                    System.out.println("Command " + name + " does not exist.");
+                } else {
                     System.out.println(name + " - " + handler.getDescription());
                     System.out.println("Usage: " + name
                             + " " + handler.getUsage());
@@ -89,7 +91,7 @@ public class InteractiveSubstituter extends Substituter {
 
         public void handle(ArgumentProvider arguments) {
             System.out.println("Unknown command "
-                    + arguments.getArgument("data") + ", try `help'.");
+                    + arguments.getArgument("input") + ", try `help'.");
         }
 
         public String getDescription() {

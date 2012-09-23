@@ -32,10 +32,7 @@ public class ArgumentProvider {
         int index = find(name);
         if (index == -1 || index >= actualArguments.size())
             return null;
-        if (variability == -1 || index < variability)
-            return actualArguments.get(index);
-        return actualArguments.get(arguments.size()
-                - (actualArguments.size() - index));
+        return actualArguments.get(index);
     }
 
     public List<String> getVariableArgument() {
