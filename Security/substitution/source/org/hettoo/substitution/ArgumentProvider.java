@@ -6,18 +6,47 @@ import java.util.List;
 public class ArgumentProvider {
     private List<Argument> arguments;
     private List<String> actualArguments;
+    private int minimumArguments;
+    private int maximumArguments;
+    private boolean optional;
     private int variability;
 
     public ArgumentProvider(List<Argument> arguments,
             List<String> actualArguments) {
         this.arguments = arguments;
         this.actualArguments = actualArguments;
+        minimumArguments = 0;
+        maximumArguments = 0;
         variability = -1;
+        optional = false;
         for (int i = 0; i < arguments.size(); i++) {
             Argument argument = arguments.get(i);
-            if (argument.isVariable())
+            if (optional && !argument.isOptional()) {
+                System.err.println(
+                        "All optional arguments must go at the end.");
+                System.exit(1);
+            } else if (maximumArguments == -1) {
+                System.err.println(
+                        "The variable argument must be the last one.");
+                System.exit(1);
+            }
+            if (argument.isOptional())
+                optional = true;
+            else
+                minimumArguments++;
+            if (argument.isVariable()) {
+                maximumArguments = -1;
                 variability = i;
+            }
+            if (maximumArguments != -1)
+                maximumArguments++;
         }
+    }
+
+    public boolean validate() {
+        int size = actualArguments.size();
+        return size >= minimumArguments
+                && (maximumArguments == -1 || size <= maximumArguments);
     }
 
     private int find(String name) {
@@ -28,9 +57,9 @@ public class ArgumentProvider {
         return -1;
     }
 
-    public String getArgument(String name) {
-        int index = find(name);
-        if (index == -1 || index >= actualArguments.size())
+    public String getArgument(Argument argument) {
+        int index = arguments.indexOf(argument);
+        if (index < 0 || index >= actualArguments.size())
             return null;
         return actualArguments.get(index);
     }

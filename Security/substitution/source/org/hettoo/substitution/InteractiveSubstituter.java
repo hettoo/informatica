@@ -53,12 +53,14 @@ public class InteractiveSubstituter extends Substituter {
     }
 
     protected class HelpCommandHandler extends AbstractCommandHandler {
+        private Argument command;
+
         public HelpCommandHandler() {
-            addArgument(new Argument("command", true, false));
+            addArgument(command = new Argument("command", true, false));
         }
 
         public void handle(ArgumentProvider arguments) {
-            String name = arguments.getArgument("command");
+            String name = arguments.getArgument(command);
             if (name == null) {
                 System.out.println("Quote arguments using single quotes.");
                 System.out.println(
@@ -85,13 +87,15 @@ public class InteractiveSubstituter extends Substituter {
     }
 
     protected class UnknownCommandHandler extends AbstractCommandHandler {
+        private Argument input;
+
         public UnknownCommandHandler() {
-            addArgument(new Argument("input", false, true));
+            addArgument(input = new Argument("input", false, true));
         }
 
         public void handle(ArgumentProvider arguments) {
             System.out.println("Unknown command "
-                    + arguments.getArgument("input") + ", try `help'.");
+                    + arguments.getArgument(input) + ", try `help'.");
         }
 
         public String getDescription() {
@@ -100,12 +104,14 @@ public class InteractiveSubstituter extends Substituter {
     }
 
     protected class SetCommandHandler extends AbstractCommandHandler {
+        private Argument data;
+
         public SetCommandHandler() {
-            addArgument(new Argument("data", false, false));
+            addArgument(data = new Argument("data", false, false));
         }
 
         public void handle(ArgumentProvider arguments) {
-            setOriginal(arguments.getArgument("data"));
+            setOriginal(arguments.getArgument(data));
         }
 
         public String getDescription() {
@@ -157,12 +163,14 @@ public class InteractiveSubstituter extends Substituter {
     }
 
     protected class ListCommandHandler extends AbstractCommandHandler {
+        private Argument pattern;
+
         public ListCommandHandler() {
-            addArgument(new Argument("character", true, false));
+            addArgument(pattern = new Argument("character", true, false));
         }
 
         public void handle(ArgumentProvider arguments) {
-            String characterString = arguments.getArgument("character");
+            String characterString = arguments.getArgument(pattern);
             Character character = null;
             if (characterString != null)
                 character = characterString.charAt(0);
@@ -218,19 +226,22 @@ public class InteractiveSubstituter extends Substituter {
     }
 
     protected class AddCommandHandler extends AbstractCommandHandler {
+        private Argument target;
+        private Argument result;
+
         public AddCommandHandler() {
-            addArgument(new Argument("target", false, false));
-            addArgument(new Argument("result", true, false));
+            addArgument(target = new Argument("target", false, false));
+            addArgument(result = new Argument("result", true, false));
         }
 
         public void handle(ArgumentProvider arguments) {
-            String target = arguments.getArgument("target");
-            String result = arguments.getArgument("result");
-            if (result == null)
-                result = target;
-            for (int i = 0 ; i < target.length(); i++)
-                addReplacement(new Replacement(target.charAt(i),
-                            result.charAt(i)));
+            String targetString = arguments.getArgument(target);
+            String resultString = arguments.getArgument(result);
+            if (resultString == null)
+                resultString = targetString;
+            for (int i = 0 ; i < targetString.length(); i++)
+                addReplacement(new Replacement(targetString.charAt(i),
+                            resultString.charAt(i)));
         }
 
         public String getDescription() {
@@ -239,12 +250,14 @@ public class InteractiveSubstituter extends Substituter {
     }
 
     protected class DeleteCommandHandler extends AbstractCommandHandler {
+        private Argument target;
+
         public DeleteCommandHandler() {
-            addArgument(new Argument("target", false, false));
+            addArgument(target = new Argument("target", false, false));
         }
 
         public void handle(ArgumentProvider arguments) {
-            for (char c : arguments.getArgument("target").toCharArray())
+            for (char c : arguments.getArgument(target).toCharArray())
                 deleteReplacement(c);
         }
 
@@ -264,15 +277,17 @@ public class InteractiveSubstituter extends Substituter {
     }
 
     protected class ReadCommandHandler extends AbstractCommandHandler {
+        private Argument file;
+
         public ReadCommandHandler() {
-            addArgument(new Argument("file", false, false));
+            addArgument(file = new Argument("file", false, false));
         }
 
         public void handle(ArgumentProvider arguments) {
             try {
                 BufferedInputStream in
                     = new BufferedInputStream(new FileInputStream(
-                                arguments.getArgument("file") + ".s"));
+                                arguments.getArgument(file) + ".s"));
                 boolean done = false;
                 do {
                     in.mark(1);
@@ -295,14 +310,16 @@ public class InteractiveSubstituter extends Substituter {
     }
 
     protected class WriteCommandHandler extends AbstractCommandHandler {
+        private Argument file;
+
         public WriteCommandHandler() {
-            addArgument(new Argument("file", false, false));
+            addArgument(file = new Argument("file", false, false));
         }
 
         public void handle(ArgumentProvider arguments) {
             try {
                 FileWriter out = new FileWriter(
-                        arguments.getArgument("file") + ".s");
+                        arguments.getArgument(file) + ".s");
                 for (Replacement replacement : replacements)
                     replacement.write(out);
                 out.close();
@@ -317,14 +334,17 @@ public class InteractiveSubstituter extends Substituter {
     }
 
     protected class CountCommandHandler extends AbstractCommandHandler {
+        private Argument mode;
+
         public CountCommandHandler() {
-            addArgument(new Argument("mode", true, false));
+            addArgument(mode = new Argument("mode", true, false));
+            mode.addValue("words");
         }
 
         public void handle(ArgumentProvider arguments) {
             String original = getOriginal();
-            String mode = arguments.getArgument("mode");
-            if (mode != null && mode.equals("words")) {
+            String modeString = arguments.getArgument(mode);
+            if (modeString != null && modeString.equals("words")) {
                 HashMap<String, Integer> map
                     = new HashMap<String, Integer>();
                 TreeMap<String, Integer> orderedMap
