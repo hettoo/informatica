@@ -45,8 +45,18 @@ public class ArgumentProvider {
 
     public boolean validate() {
         int size = actualArguments.size();
-        return size >= minimumArguments
-                && (maximumArguments == -1 || size <= maximumArguments);
+        if (size < minimumArguments
+                || (maximumArguments != -1 && size > maximumArguments))
+            return false;
+        for (Argument argument : arguments) {
+            List<String> values = argument.getValues();
+            if (values != null) {
+                String value = getArgument(argument);
+                if (value != null && !values.contains(value))
+                    return false;
+            }
+        }
+        return true;
     }
 
     private int find(String name) {

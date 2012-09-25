@@ -13,15 +13,21 @@ public class Argument {
         this.name = name;
         this.optional = optional;
         this.variable = variable;
-        values = new ArrayList<String>();
-    }
-
-    public void addValue(String value) {
-        values.add(value);
+        values = null;
     }
 
     public String getName() {
         return name;
+    }
+
+    public void addValue(String value) {
+        if (values == null)
+            values = new ArrayList<String>();
+        values.add(value);
+    }
+
+    public List<String> getValues() {
+        return values;
     }
 
     public boolean isOptional() {
@@ -34,7 +40,7 @@ public class Argument {
 
     public String toString() {
         String result = name;
-        if (values.size() > 0) {
+        if (values != null) {
             boolean first = true;
             for (String value : values) {
                 result += " " + (first ? "=" : "|") + " " + value;
