@@ -3,48 +3,44 @@ package org.hettoo.substitution;
 import java.util.TreeMap;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 import java.util.Arrays;
-
-import java.util.regex.Pattern;
-import java.util.regex.MatchResult;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 
 public class InteractiveSubstituter extends Substituter {
-    private Map<String, CommandHandler> handlers;
-    private CommandHandler unknownCommandHandler;
-    private boolean stop;
+    private CLI cli;
 
     public InteractiveSubstituter() {
-        handlers = new LinkedHashMap<String, CommandHandler>();
-        setCommandHandler("set", new SetCommandHandler());
-        setCommandHandler("original", new OriginalCommandHandler());
-        setCommandHandler("show", new ShowCommandHandler());
-        setCommandHandler("mask", new MaskCommandHandler());
-        setCommandHandler("all", new AllCommandHandler());
-        setCommandHandler("count", new CountCommandHandler());
-        setCommandHandler("add", new AddCommandHandler());
-        setCommandHandler("delete", new DeleteCommandHandler());
-        setCommandHandler("clear", new ClearCommandHandler());
-        setCommandHandler("list", new ListCommandHandler());
-        setCommandHandler("stats", new StatsCommandHandler());
-        setCommandHandler("read", new ReadCommandHandler());
-        setCommandHandler("write", new WriteCommandHandler());
-        setCommandHandler("quit", new QuitCommandHandler());
-        setCommandHandler("help", new HelpCommandHandler());
-        setUnknownCommandHandler(new UnknownCommandHandler());
+        cli = new CLI();
+        cli.setCommandHandler("set", new SetCommandHandler());
+        cli.setCommandHandler("original", new OriginalCommandHandler());
+        cli.setCommandHandler("show", new ShowCommandHandler());
+        cli.setCommandHandler("mask", new MaskCommandHandler());
+        cli.setCommandHandler("all", new AllCommandHandler());
+        cli.setCommandHandler("count", new CountCommandHandler());
+        cli.setCommandHandler("add", new AddCommandHandler());
+        cli.setCommandHandler("delete", new DeleteCommandHandler());
+        cli.setCommandHandler("clear", new ClearCommandHandler());
+        cli.setCommandHandler("list", new ListCommandHandler());
+        cli.setCommandHandler("stats", new StatsCommandHandler());
+        cli.setCommandHandler("read", new ReadCommandHandler());
+        cli.setCommandHandler("write", new WriteCommandHandler());
+        cli.setCommandHandler("quit", new QuitCommandHandler());
+        cli.setCommandHandler("help", new HelpCommandHandler());
+        cli.setUnknownCommandHandler(new UnknownCommandHandler());
+    }
+
+    public void run() {
+        cli.run();
     }
 
     protected class QuitCommandHandler extends AbstractCommandHandler {
         public void handle(ArgumentProvider arguments) {
-            stop = true;
+            cli.stop();
         }
 
         public String getDescription() {
@@ -66,11 +62,11 @@ public class InteractiveSubstituter extends Substituter {
                 System.out.println(
                         "Add a command as an argument to show its usage.");
                 System.out.println("Available commands:");
-                for (String command : handlers.keySet())
+                for (String command : cli.getCommands())
                     System.out.println("    " + command + " - "
-                            + handlers.get(command).getDescription());
+                            + cli.getCommandHandler(command).getDescription());
             } else {
-                CommandHandler handler = handlers.get(name);
+                CommandHandler handler = cli.getCommandHandler(name);
                 if (handler == null) {
                     System.out.println("Command " + name + " does not exist.");
                 } else {
@@ -151,9 +147,9 @@ public class InteractiveSubstituter extends Substituter {
 
     protected class AllCommandHandler extends AbstractCommandHandler {
         public void handle(ArgumentProvider arguments) {
-            execute(new ArrayList<String>(Arrays.asList("original")));
-            execute(new ArrayList<String>(Arrays.asList("show")));
-            execute(new ArrayList<String>(Arrays.asList("mask")));
+            cli.execute(new ArrayList<String>(Arrays.asList("original")));
+            cli.execute(new ArrayList<String>(Arrays.asList("show")));
+            cli.execute(new ArrayList<String>(Arrays.asList("mask")));
         }
 
         public String getDescription() {
@@ -413,82 +409,5 @@ public class InteractiveSubstituter extends Substituter {
                 return -1;
             }
         }
-    }
-
-    public void start() {
-        stop = false;
-        while (!stop)
-            requestCommand();
-    }
-
-    private void requestCommand() {
-        System.out.print("> ");
-        List<String> arguments = new ArrayList<String>();
-        boolean done = false;
-        boolean quoted = false;
-        boolean escaped = false;
-        boolean next = true;
-        for (;;) {
-            int c = 0;
-            try {
-                c = System.in.read();
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-            switch (c) {
-                case '\\':
-                    if (!escaped) {
-                        escaped = true;
-                        break;
-                    }
-                case '\'':
-                    if (!escaped) {
-                        quoted = !quoted;
-                        break;
-                    }
-                case '\n':
-                    if (!quoted && !escaped) {
-                        execute(arguments);
-                        return;
-                    }
-                case ' ':
-                case '\t':
-                    if (!quoted && !escaped) {
-                        next = true;
-                        break;
-                    }
-                default:
-                    if (next)
-                        arguments.add("");
-                    arguments.set(arguments.size() - 1,
-                            arguments.get(arguments.size() - 1) + (char)c);
-                    escaped = false;
-                    next = false;
-                    break;
-            }
-        }
-    }
-
-    private void execute(List<String> arguments) {
-        if (arguments.size() == 0)
-            return;
-
-        CommandHandler handler = handlers.get(arguments.get(0));
-        if (handler == null)
-            handler = unknownCommandHandler;
-        else
-            arguments.remove(0);
-        if (handler != null)
-            handler.handle(arguments);
-    }
-
-    public void setCommandHandler(String command, CommandHandler handler) {
-        handler.setName(command);
-        handlers.put(command, handler);
-    }
-
-    public void setUnknownCommandHandler(CommandHandler handler) {
-        unknownCommandHandler = handler;
     }
 }
