@@ -424,10 +424,10 @@ public class InteractiveSubstituter extends Substituter {
     private void requestCommand() {
         System.out.print("> ");
         List<String> arguments = new ArrayList<String>();
-        arguments.add("");
         boolean done = false;
         boolean quoted = false;
         boolean escaped = false;
+        boolean next = true;
         for (;;) {
             int c = 0;
             try {
@@ -455,20 +455,25 @@ public class InteractiveSubstituter extends Substituter {
                 case ' ':
                 case '\t':
                     if (!quoted && !escaped) {
-                        if (!arguments.get(arguments.size() - 1).equals(""))
-                            arguments.add("");
+                        next = true;
                         break;
                     }
                 default:
+                    if (next)
+                        arguments.add("");
                     arguments.set(arguments.size() - 1,
                             arguments.get(arguments.size() - 1) + (char)c);
                     escaped = false;
+                    next = false;
                     break;
             }
         }
     }
 
     private void execute(List<String> arguments) {
+        if (arguments.size() == 0)
+            return;
+
         CommandHandler handler = handlers.get(arguments.get(0));
         if (handler == null)
             handler = unknownCommandHandler;
