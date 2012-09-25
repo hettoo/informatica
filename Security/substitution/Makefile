@@ -1,4 +1,4 @@
-MAIN_CLASS = org.hettoo.substitution.Main
+MAIN_CLASS = org.hettoo.substituter.Main
 SOURCE_DIR = source
 BUILD_DIR = build
 CLASS_DIR = $(BUILD_DIR)/classes

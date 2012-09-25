@@ -1,4 +1,4 @@
-package org.hettoo.substitution;
+package org.hettoo.substituter;
 
 import java.io.InputStream;
 import java.io.Writer;

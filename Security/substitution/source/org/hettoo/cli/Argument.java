@@ -1,4 +1,4 @@
-package org.hettoo.substitution;
+package org.hettoo.cli;
 
 import java.util.ArrayList;
 import java.util.List;

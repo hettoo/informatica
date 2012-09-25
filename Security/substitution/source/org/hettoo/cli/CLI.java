@@ -1,4 +1,4 @@
-package org.hettoo.substitution;
+package org.hettoo.cli;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
