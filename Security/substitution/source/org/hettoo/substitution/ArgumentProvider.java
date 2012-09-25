@@ -6,9 +6,9 @@ import java.util.List;
 public class ArgumentProvider {
     private List<Argument> arguments;
     private List<String> actualArguments;
+
     private int minimumArguments;
     private int maximumArguments;
-    private boolean optional;
     private int variability;
 
     public ArgumentProvider(List<Argument> arguments,
@@ -18,7 +18,7 @@ public class ArgumentProvider {
         minimumArguments = 0;
         maximumArguments = 0;
         variability = -1;
-        optional = false;
+        boolean optional = false;
         for (int i = 0; i < arguments.size(); i++) {
             Argument argument = arguments.get(i);
             if (optional && !argument.isOptional()) {

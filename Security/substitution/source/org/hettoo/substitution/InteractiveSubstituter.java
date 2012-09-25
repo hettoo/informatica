@@ -438,21 +438,23 @@ public class InteractiveSubstituter extends Substituter {
             }
             switch (c) {
                 case '\\':
-                    escaped = !escaped;
-                    break;
+                    if (!escaped) {
+                        escaped = true;
+                        break;
+                    }
                 case '\'':
                     if (!escaped) {
                         quoted = !quoted;
                         break;
                     }
                 case '\n':
-                    if (!quoted) {
+                    if (!quoted && !escaped) {
                         execute(arguments);
                         return;
                     }
                 case ' ':
                 case '\t':
-                    if (!quoted) {
+                    if (!quoted && !escaped) {
                         if (!arguments.get(arguments.size() - 1).equals(""))
                             arguments.add("");
                         break;
@@ -460,6 +462,7 @@ public class InteractiveSubstituter extends Substituter {
                 default:
                     arguments.set(arguments.size() - 1,
                             arguments.get(arguments.size() - 1) + (char)c);
+                    escaped = false;
                     break;
             }
         }
